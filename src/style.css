@@ -1,0 +1,62 @@
+body, html {
+  margin: 0;
+  background: radial-gradient(circle,rgb(181, 194, 226) 0%, rgb(255, 255, 255) 100%);
+}
+
+:root {
+  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
+}
+
+#app {
+  width: 100vw;
+  height: calc(100dvh - 150px);
+  margin: 0;
+  
+}
+
+.range-bar {
+  width: calc(100vw - 20px);
+  height: 60px;
+  margin: 10px;
+  background-color: rgb(128, 185, 166);
+  border-radius: 4px;
+  overflow: hidden;
+  position: relative;
+}
+
+#range-bar-terrain {
+  background-color: rgb(160 128 185);
+}
+
+.offset-indicator {
+  width: 3px;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.02);
+  position: absolute;
+}
+
+.fade-out-auto {
+  animation: fadeOut 1s ease-in-out forwards;
+}
+
+@keyframes fadeOut {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+.bar-title {
+  position: absolute;
+  color: rgba(0, 0, 0, 0.692);
+  font-family: monospace;
+  top: 0;
+  bottom: 0;
+  right: 5%;
+  text-align: right;
+  margin: auto;
+  width: fit-content;
+  height: fit-content;
+}
