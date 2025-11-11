@@ -60,3 +60,24 @@ body, html {
   width: fit-content;
   height: fit-content;
 }
+
+.logo-c2c {
+  position: absolute;
+  z-index: 2;
+  top: 0;
+  width: 25%;
+  backdrop-filter: blur(5px);
+  padding: 10px;
+  background: #ffffff38;
+}
+
+.logo-gr {
+  position: absolute;
+    z-index: 2;
+    top: 0;
+    width: 25%;
+    right: 0;
+    backdrop-filter: blur(5px);
+    padding: 10px;
+    background: #ffffff38;
+}

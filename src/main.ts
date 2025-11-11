@@ -1,6 +1,6 @@
 import "maplibre-gl/dist/maplibre-gl.css";
 import "./style.css";
-import maplibregl, { type EaseToOptions, type FlyToOptions } from "maplibre-gl";
+import maplibregl, { type FlyToOptions } from "maplibre-gl";
 import {
   Protocol,
   PMTiles,
@@ -53,12 +53,73 @@ const places: FlyToOptions[] = [
     zoom: 16,
     center: {lng: -73.570012, lat: 45.503256}
   },
+
+  // NYC
+  {
+    zoom: 13,
+    center: {lng: -73.97893, lat: 40.74304}
+  },
+
+  // SF
+  {
+    zoom: 14,
+    center: {lng: -122.472697, lat: 37.806629}
+  },
+
+  // Rio
+  {
+    zoom: 14,
+    center: {lng: -43.210494, lat: -22.910876}
+  },
+
+
+  // Auckland
+  {
+    zoom: 15,
+    center: {lng: 174.75724, lat: -36.84545}
+  },
+
+  // Sidney
+  {
+    zoom: 15,
+    center: {lng: 151.2074, lat: -33.86207}
+  },
+
+  // Hong Kong
+  {
+    zoom: 16,
+    center: {lng: 114.161917, lat: 22.279069}
+  },
+
+  // Tokyo
+  {
+    zoom: 15,
+    center: {lng: 139.75246, lat: 35.68322}
+  },
+
+  // Dubai
+  {
+    zoom: 15,
+    center: {lng: 55.13401, lat: 25.11534}
+  },
+
+
+  // Istanbul
+  {
+    zoom: 15,
+    center: {lng: 28.973688, lat: 41.006644}
+  },
+
+  // Venise
+  {
+    zoom: 16,
+    center: {lng: 12.334513, lat: 45.437001}
+  },
 ];
 
 
 function showOffsetIndicator(rangeBar: HTMLDivElement, percent: number) {
   const percentNonLinear = 1 - (1 - percent) ** 3;
-
   const indicatorDiv = document.createElement("div");
   indicatorDiv.classList.add("offset-indicator", "fade-out-auto");
   indicatorDiv.style.setProperty("left", `${(percentNonLinear * 100).toFixed(4)}%`)
@@ -74,6 +135,7 @@ function showOffsetIndicator(rangeBar: HTMLDivElement, percent: number) {
 function sleepAsync(ms: number) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
+
 
 function flyToAsync(map: maplibregl.Map, options: FlyToOptions) {
   return new Promise((resolve, _reject) => {
@@ -94,10 +156,45 @@ function flyToAsync(map: maplibregl.Map, options: FlyToOptions) {
   });
 }
 
+let map: maplibregl.Map;
+let counter = 0;
+let isAnimating = false;
+
+async function loopAnimate(map: maplibregl.Map) {
+  if (!map) return;
+
+  isAnimating = true;
+
+  while(true) {
+    counter = counter % places.length;
+    
+    const shouldContinue = await flyToAsync(map, {
+      ...places[counter],
+      speed: 0.3,
+    });
+
+    if (!shouldContinue) {
+      isAnimating = false;
+      return;
+    }
+
+    await sleepAsync(500);
+    counter ++;
+  }
+}
+
+
+window.addEventListener("keyup", (e) => {
+  e.stopPropagation();
+  e.preventDefault();
+
+  if (e.code === "Space" && !isAnimating) {
+    loopAnimate(map);
+  }
+});
 
 
 (async () => {
-
   const appDiv = document.getElementById("app") as HTMLDivElement;
   const rangeBarBasemap = document.getElementById("range-bar-basemap") as HTMLDivElement;
   const rangeBarTerrain = document.getElementById("range-bar-terrain") as HTMLDivElement;
@@ -108,45 +205,40 @@ function flyToAsync(map: maplibregl.Map, options: FlyToOptions) {
 
   maplibregl.addProtocol("pmtiles", new Protocol().tile);
 
-  
-
-
   const style = getStyle("avenue", {
     pmtiles,
     sprite,
     glyphs,
+    hidePOIs: true,
     lang,
     terrain: {
       pmtiles: pmtilesTerrain,
       encoding: terrainTileEncoding,
     },
     globe: true,
-  });
+  });  
 
-  const map = new maplibregl.Map({
+  map = new maplibregl.Map({
     container: appDiv,
     maxPitch: 89,
-    hash: true,
+    hash: false,
     style,
-    center: [0, 0],
-    zoom: 3,
+    center: places[0].center,
+    zoom: places[0].zoom,
+    attributionControl: {
+      compact: true,
+      customAttribution: [
+        "Camptocamp",
+      ]
+    }
   });
 
   await new Promise((resolve) => map.on("load", resolve));
 
-
   const basemapPmtiles = new PMTiles(pmtiles);
   const basemapPmtilesBytelength = await getPMTilesFileSize(basemapPmtiles);
-
   const terrainPmtiles = new PMTiles(pmtilesTerrain);
   const terrainPmtilesBytelength = await getPMTilesFileSize(terrainPmtiles);
-
-  console.log(basemapPmtiles);
-
-
-
-  
-
 
   map.on("move", async () => {
     const coveringTiles = map.coveringTiles({tileSize: 512}).map((val) => ({z: val.canonical.z, x: val.canonical.x, y: val.canonical.y}) as TileIndex);
@@ -179,19 +271,4 @@ function flyToAsync(map: maplibregl.Map, options: FlyToOptions) {
       } 
     }
   })
-
-
-  let lastLocationIndex = 0;
-  let counter = 0;
-
-  while(true) {
-    lastLocationIndex = (lastLocationIndex + counter) % places.length;
-    await flyToAsync(map, {
-      ...places[lastLocationIndex],
-      speed: 0.7,
-    });
-
-    await sleepAsync(1000);
-    counter ++;
-  }
 })()
